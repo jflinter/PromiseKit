@@ -30,7 +30,7 @@ class TestPromise: XCTestCase {
         let ex = expectationWithDescription("")
         Promise(1).then { _ -> AnyPromise in
             return AnyPromise(bound: after(0).then{ Promise<Int>(error: "") })
-        }.snatch { err -> Void in
+        }.rescue { err -> Void in
             ex.fulfill()
         }
         waitForExpectationsWithTimeout(1, handler: nil)
@@ -58,11 +58,11 @@ class TestPromise: XCTestCase {
             ex1.fulfill()
         }
 
-        after(0).then { _ -> Promise<Int> in
-            return Promise(NSError.cancelledError())
+        after(0).then { _ in
+            throw NSError.cancelledError()
         }.then { _ -> Void in
             XCTFail()
-        }.snatch { _ -> Void in
+        }.rescue { _ -> Void in
             XCTFail()
         }
 
@@ -78,15 +78,15 @@ class TestPromise: XCTestCase {
             ex2.fulfill()
         }
 
-        after(0).then { _ -> Promise<Int> in
-            return Promise(NSError.cancelledError())
-        }.recover { err -> Promise<Int> in
+        after(0).then { _ in
+            throw NSError.cancelledError()
+        }.recover { err in
             ex1.fulfill()
             XCTAssertTrue(err.cancelled)
-            return Promise(err)
+            throw err
         }.then { _ -> Void in
             XCTFail()
-        }.snatch { _ -> Void in
+        }.rescue { _ -> Void in
             XCTFail()
         }
 
@@ -96,9 +96,9 @@ class TestPromise: XCTestCase {
     func testCatchCancellation() {
         let ex = expectationWithDescription("")
 
-        after(0).then { _ -> Promise<Int> in
-            return Promise(NSError.cancelledError())
-        }.snatch(policy: CatchPolicy.AllErrors) { err -> Void in
+        after(0).then { _ in
+            throw NSError.cancelledError()
+        }.rescue(policy: .AllErrors) { err -> Void in
             ex.fulfill()
         }
 
@@ -124,4 +124,19 @@ class TestPromise: XCTestCase {
 //        }
 //        waitForExpectationsWithTimeout(10, handler: nil)
 //    }
+
+    func testRescueFinally() {
+        let ex1 = expectationWithDescription("")
+        let ex2 = expectationWithDescription("")
+
+        Promise(1).then { _ in
+            throw NSError(domain: "a", code: 1, userInfo: nil)
+        }.rescue { _ in
+            ex1.fulfill()
+        }.finally {
+            ex2.fulfill()
+        }
+
+        waitForExpectationsWithTimeout(1, handler: nil)
+    }
 }

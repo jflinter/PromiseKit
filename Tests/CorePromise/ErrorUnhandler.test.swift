@@ -17,10 +17,10 @@ class TestErrorUnhandler: XCTestCase {
 
         autoreleasepool {
             let ex = expectationWithDescription("Unsealed")
-            let p = Promise<Int>{ sealant in
+            let p = Promise { sealant in
                 sealant.resolve(1)
             }.then { _ -> Promise<Int> in
-                return Promise(error: "a", code: 1)
+                Promise(error: "a", code: 1)
             }
             body(p, ex)
         }
@@ -42,7 +42,7 @@ class TestErrorUnhandler: XCTestCase {
             PMKUnhandledErrorHandler = { err in
                 XCTFail()
             }
-            promise.snatch { error in
+            promise.rescue { error in
                 ex.fulfill()
             }
         }
@@ -95,12 +95,12 @@ class TestErrorUnhandler: XCTestCase {
                 XCTFail()
             }
             promise.recover { error in
-                return Promise(error)
+                throw error
             }.then { x in
                 XCTFail()
             }.finally {
                 ex1.fulfill()
-            }.snatch { err in
+            }.rescue { err in
                 ex2.fulfill()
             }
         }

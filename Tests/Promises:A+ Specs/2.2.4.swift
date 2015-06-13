@@ -20,7 +20,7 @@ class Test224: XCTestCase {
         }
         suiteRejected(1) { (promise, exes, memo)->() in
             var catchHasReturned = false
-            promise.snatch { _->() in
+            promise.rescue { _->() in
                 XCTAssert(catchHasReturned)
                 exes[0].fulfill()
             }
@@ -32,7 +32,7 @@ class Test224: XCTestCase {
 
     func test2242_1() {
         // when `onFulfilled` is added immediately before the promise is fulfilled
-        let (promise, fulfiller, _) = Promise<Int>.deferred()
+        let (promise, fulfiller, _) = Promise<Int>.pendingPromise()
         var onFulfilledCalled = false
 
         fulfiller(dummy)
@@ -67,7 +67,7 @@ class Test224: XCTestCase {
         var firstOnRejectedFinished = false
         let ex = expectationWithDescription("")
 
-        rejected.snatch { _->() in
+        rejected.rescue { _->() in
             resolved.then { _->() in
                 XCTAssert(firstOnRejectedFinished)
                 ex.fulfill()
@@ -80,7 +80,7 @@ class Test224: XCTestCase {
 
     func test2242_4() {
         // when the promise is fulfilled asynchronously
-        let (promise, fulfiller, _) = Promise<Int>.deferred()
+        let (promise, fulfiller, _) = Promise<Int>.pendingPromise()
         var firstStackFinished = false
         let ex = expectationWithDescription("")
         later {
@@ -98,9 +98,9 @@ class Test224: XCTestCase {
 
     func test2243() {
         // when `onRejected` is added immediately before the promise is rejected
-        let (promise, _, rejecter) = Promise<Int>.deferred()
+        let (promise, _, rejecter) = Promise<Int>.pendingPromise()
         var onRejectedCalled = false
-        promise.snatch{ _->() in
+        promise.rescue{ _->() in
             onRejectedCalled = true
         }
         rejecter(dammy)
@@ -109,10 +109,10 @@ class Test224: XCTestCase {
 
     func test2244() {
         // when `onRejected` is added immediately after the promise is rejected
-        let (promise, _, rejecter) = Promise<Int>.deferred()
+        let (promise, _, rejecter) = Promise<Int>.pendingPromise()
         var onRejectedCalled = false
         rejecter(dammy)
-        promise.snatch{ _->() in
+        promise.rescue{ _->() in
             onRejectedCalled = true
         }
         XCTAssertFalse(onRejectedCalled)
@@ -126,7 +126,7 @@ class Test224: XCTestCase {
         let ex = expectationWithDescription("")
 
         resolved.then{ _->() in
-            rejected.snatch{ _->() in
+            rejected.rescue{ _->() in
                 XCTAssert(firstOnFulfilledFinished)
                 ex.fulfill()
             }
@@ -141,8 +141,8 @@ class Test224: XCTestCase {
         var firstOnRejectedFinished = false
         let ex = expectationWithDescription("")
 
-        promise.snatch{ _->() in
-            promise.snatch{ _->() in
+        promise.rescue{ _->() in
+            promise.rescue{ _->() in
                 XCTAssertTrue(firstOnRejectedFinished)
                 ex.fulfill()
             }
@@ -153,7 +153,7 @@ class Test224: XCTestCase {
 
     func test2247() {
         // when the promise is rejected asynchronously
-        let (promise, _, rejecter) = Promise<Int>.deferred()
+        let (promise, _, rejecter) = Promise<Int>.pendingPromise()
         var firstStackFinished = false
         let ex = expectationWithDescription("")
 
@@ -162,7 +162,7 @@ class Test224: XCTestCase {
             firstStackFinished = true
         }
 
-        promise.snatch{ _->() in
+        promise.rescue{ _->() in
             XCTAssert(firstStackFinished)
             ex.fulfill()
         }
