@@ -60,14 +60,12 @@ class TestWhen: XCTestCase {
         let p1 = after(0.01).then{ true }
         let p2 = after(0.01).then{ return Promise<Bool>(error: "Fail") }
         let p3 = Promise(false)
-
         when(p1, p2, p3).catch { _ in
             e1.fulfill()
         }
-
         waitForExpectationsWithTimeout(1, handler: nil)
     }
-    
+
     func testProgress() {
         let ex = expectationWithDescription("")
 
@@ -95,10 +93,9 @@ class TestWhen: XCTestCase {
                 XCTAssertEqual(cum, progress.fractionCompleted)
             }
         }
-
         waitForExpectationsWithTimeout(1, handler: nil)
     }
-    
+
     func testProgressDoesNotExceed100Percent() {
         let ex1 = expectationWithDescription("")
         let ex2 = expectationWithDescription("")
